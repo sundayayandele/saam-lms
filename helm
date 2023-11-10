@@ -1,0 +1,139 @@
+Enable Required MicroK8s Add-ons:
+
+bash
+Copy code
+microk8s.enable dns storage
+Install Helm:
+Helm is a package manager for Kubernetes that simplifies the deployment of applications.
+
+bash
+Copy code
+sudo snap install helm --classic
+Add Bitnami Helm Repository:
+
+bash
+Copy code
+helm repo add bitnami https://charts.bitnami.com/bitnami
+helm repo update
+Create Namespace for Moodle:
+
+bash
+Copy code
+microk8s.kubectl create namespace moodle
+Install Moodle using Helm:
+
+bash
+Copy code
+helm install moodle bitnami/moodle \
+  --namespace moodle \
+  --set moodleUsername=admin \
+  --set moodlePassword=admin-password
+Note: Replace admin-password with your desired password.
+
+Wait for Deployment:
+Wait for the Moodle deployment to complete. You can check the status using:
+
+bash
+Copy code
+microk8s.kubectl get pods -n moodle
+Wait until the pods are in the "Running" state.
+
+Expose Moodle Service:
+
+bash
+Copy code
+microk8s.kubectl expose deployment moodle-moodle --type=NodePort --name=moodle-service -n moodle
+Access Moodle:
+Find the NodePort assigned to the Moodle service:
+
+bash
+Copy code
+microk8s.kubectl get svc -n moodle moodle-service
+Access Moodle using the NodePort in your browser. For example, if the NodePort is 30000, you can access Moodle at http://<your-node-ip>:30000.
+
+Access Moodle Admin Panel:
+Access the Moodle admin panel using the provided credentials at http://<your-node-ip>:30000/admin.
+
+Clean Up (Optional):
+If you want to uninstall Moodle, you can use:
+
+bash
+Copy code
+helm uninstall moodle -n moodle
+microk8s.kubectl delete namespace moodle
+This will remove the Moodle deployment and its associated resources.
+
+Please note that these instructions assume a basic setup, and you might need to adjust configurations based on your specific requirements. Additionally, ensure that your system meets the requirements for running Moodle, such as having sufficient resources (CPU, memory) available.
+
+
+The error message indicates that MicroK8s is unable to connect to the Kubernetes cluster on the default API server address (http://localhost:8080). This could be due to various reasons. Here are some steps to troubleshoot and resolve the issue:
+
+Check if MicroK8s is Running:
+Ensure that MicroK8s is running by executing the following command:
+
+bash
+Copy code
+microk8s.status
+If it's not running, start it using:
+
+bash
+Copy code
+microk8s.start
+Check MicroK8s Status:
+Run the following command to check the status of MicroK8s components:
+
+bash
+Copy code
+microk8s.kubectl get nodes
+Ensure that the nodes are in a Ready state.
+
+Check kubeconfig File:
+MicroK8s uses its own kubeconfig file. Make sure that your KUBECONFIG environment variable is set to the MicroK8s kubeconfig file. It is typically located at ~/.kube/config:
+
+bash
+Copy code
+export KUBECONFIG=/var/snap/microk8s/current/credentials/kubelet.config
+Restart MicroK8s:
+Try restarting MicroK8s to see if it resolves the issue:
+
+bash
+Copy code
+microk8s.stop
+microk8s.start
+Check for Systemd Service:
+Ensure that the MicroK8s systemd service is running:
+
+bash
+Copy code
+sudo systemctl status snap.microk8s.daemon-kubelet.service
+Firewall and Networking:
+Ensure that there are no firewall issues blocking communication. Check that the necessary ports (e.g., 8080) are open.
+
+Reinstall MicroK8s:
+If the issue persists, you may consider reinstalling MicroK8s. This involves stopping and removing the existing MicroK8s installation and then reinstalling it.
+
+bash
+Copy code
+microk8s.stop
+sudo snap remove microk8s
+sudo snap install microk8s --classic
+microk8s.start
+Check Docker Status:
+Ensure that Docker is running, as MicroK8s uses it as a container runtime:
+
+bash
+Copy code
+sudo systemctl status docker
+Check for Resource Availability:
+Insufficient system resources (CPU, memory) could lead to connection issues. Make sure your system has enough resources available.
+
+Check for Snap Version Compatibility:
+Ensure that you are using a version of MicroK8s that is compatible with your operating system. You can check the MicroK8s releases page for the latest stable version: MicroK8s Releases
+
+After performing these checks, you should be able to connect to the MicroK8s cluster without encountering the "connection refused" error. If the issue persists, you may need to dig deeper into system logs and MicroK8s logs to identify the root cause.
+
+
+
+
+
+
